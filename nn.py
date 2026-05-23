@@ -57,8 +57,8 @@ def forward_pass(v1):
     return v
 
 def forward_pass_verbose(v1):
-    acts = []
-    vs = [v1]
+    acts = [v1]
+    vs = []
     v = v1
     for i, layer in enumerate(layers):
         m = layer[0]
@@ -130,7 +130,7 @@ def train_network_bp(iv, ov, repeat, lr):
             m = layers[i][0]
             b = layers[i][1]
 
-            v_inp = vs[i]
+            v_inp = acts[i]
 
             b_grad = delta.copy()
             m_grad = np.dot(delta, v_inp.T)
@@ -138,7 +138,7 @@ def train_network_bp(iv, ov, repeat, lr):
 
             if i > 0:
                 delta = np.dot(m.T, delta)
-                delta = delta * np.where(acts[i-1] > 0, 1.0, 0.0)
+                delta = delta * np.where(vs[i-1] > 0, 1.0, 0.0)
 
         for i, layer in enumerate(layers):
             update = updates[i]
