@@ -1,4 +1,7 @@
 """
+written at 23/05/2026
+uploaded at 23/05/2026
+
 L = Loss o Layer2 o Layer1 o V
 z2 = m2 z1 + b2
 z1 = m1 V  + b1
