@@ -1,4 +1,6 @@
 """
+written in 26/05/2026
+
 1024 QAM. Meaning we will send 10 bits. (2**10 = 1024)
 Physically, orthogonal waves do not interfere.
 We can represent that by complex numbers
