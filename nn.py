@@ -25,15 +25,15 @@ dLoss/dm2 = dLoss/dz2 * dz2/dm2
 going from L2 to L1
 dz2/dz1 = d(m2 z1 + b2)/dz1 = m2
 dLoss/z1 = dLoss/dz2 * dz2/dz1
-^------^    = d2    *  m2^T (transpose, same reason)
+^------^    = d2    * m2^T (transpose, same reason)
 alias as d1
 
 pass d1 to layer1
 dLoss/db1 = dLoss/dz1 * dz1/db1
-          =    d1     *    1
+          =    d1     * 1
           = d1
 dLoss/dm1 = dLoss/dz1 * dz1/dm1
-          =    d1     *   V^T
+          =    d1     * V^T
 """
 
 import numpy as np
@@ -44,7 +44,7 @@ def add_layer(matrix, bias):
     layers.append([matrix, bias])
 
 def relu(v):
-    return np.maximum(0, v)
+    return np.where(v > 0, v, v * 0.01)
 
 def forward_pass(v1):
     v = v1
@@ -124,44 +124,45 @@ def train_network_bp(iv, ov, repeat, lr):
         acts, vs = forward_pass_verbose(iv)
 
         updates = [None] * len(layers)
-        delta = 2 * (acts[-1] - ov) / ov.size
+        delta = 2 * (acts[-1] - ov)
 
         for i in reversed(range(len(layers))):
             m = layers[i][0]
             b = layers[i][1]
 
             v_inp = acts[i]
-
-            b_grad = delta.copy()
+            b_grad = np.sum(delta, axis=1, keepdims=True)
             m_grad = np.dot(delta, v_inp.T)
             updates[i] = (m_grad, b_grad)
 
             if i > 0:
                 delta = np.dot(m.T, delta)
-                delta = delta * np.where(vs[i-1] > 0, 1.0, 0.0)
+                delta *= np.where(vs[i-1] > 0, 1.0, 0.01)
 
         for i, layer in enumerate(layers):
             update = updates[i]
-            layer[0] -= lr * update[0]
-            layer[1] -= lr * update[1]
+            layer[0] -= lr * (update[0] / ov.size)
+            layer[1] -= lr * (update[1] / ov.size)
 
 
-# L1 -> L2 (3 node -> 2 node)
+# L1 -> L2 (3 -> 3)
 m12 = np.array([
     [ 0.612,  0.418, -0.153],
-    [-0.204,  0.785,  0.521]
+    [-0.204,  0.785,  0.521],
+    [ 0.112, -0.340,  0.901]
 ])
 b12 = np.array([
     [ 0.100],
-    [ 0.050]
+    [ 0.050],
+    [-0.020]
 ])
 add_layer(m12, b12)
 
-# L2 -> L3 (2 node -> 3 node)
+# L2 -> L3 (3 -> 3)
 m23 = np.array([
-    [ 0.416, -0.959],
-    [ 0.940,  0.665],
-    [-0.575, -0.636]
+    [ 0.416, -0.959,  0.123],
+    [ 0.940,  0.665, -0.456],
+    [-0.575, -0.636,  0.789]
 ])
 b23 = np.array([
     [-0.120],
@@ -171,14 +172,14 @@ b23 = np.array([
 add_layer(m23, b23)
 
 sv = np.array([
-    [0.157],
-    [0.219],
-    [0.513]
+    [ 0.157,  0.820, -0.340 ],
+    [ 0.219,  0.015,  0.711 ],
+    [ 0.513, -0.450,  0.120 ]
 ])
 tv = np.array([
-    [ 0.239],
-    [-0.210],
-    [ 0.200]
+    [ 0.239, -0.110,  0.950 ],
+    [-0.210,  0.430,  0.010 ],
+    [ 0.200,  0.880, -0.620 ]
 ])
 
 print_layers()
@@ -195,10 +196,12 @@ while (True):
     if (cmd == "train"):
         train_network(sv, tv, int(splt[1]), 1e-5, float(splt[2]))
         out = forward_pass(sv)
+        print("TV: ", change_ends(tv , "     "))
         print("SP: ", change_ends(out, "     "))
     elif (cmd == "trainc"):
         train_network_bp(sv, tv, int(splt[1]), float(splt[2]))
         out = forward_pass(sv)
+        print("TV: ", change_ends(tv , "     "))
         print("SP: ", change_ends(out, "     "))
     elif (cmd == "exit"):
         break
