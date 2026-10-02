@@ -1,5 +1,6 @@
 # did in uni computer labs, ceng1009
 # at 2/10/2026
+# ported from https://github.com/lunawin/perlin_noise/blob/main/src%2Fperlin.c
 
 import std/math
 import std/os
