@@ -1,4 +1,5 @@
 # Attempt at 5.10.2026, at uni computer labs
+# finished at 19.10.2026, at uni computer labs
 
 type DPU = ref object
     west: float
@@ -117,7 +118,18 @@ proc do_matrix[M, N, K: static[int]](sb: SystolicBoard, m1: Matrix[M, K], m2: Ma
     const clocks_needed = M + N + K - 2 + 1
     var clock = 0
     while clock < clocks_needed:
-        discard # 16.17: had to leave cus of lab ending
+        # entering inputs
+        # left side
+        for i in 0..<M:
+            sb[i, 0].west = if (i <= clock) and (clock <= (K-1+i)): m1[i * K + (clock - i)]
+                            else: 0.0
+        # up side
+        for i in 0..<N:
+            sb[0, i].north = if (i <= clock) and (clock <= (K-1+i)): m2[(clock - i) * N + i]
+                            else: 0.0
+        sb.tick()
+        echo sb
+        clock.inc
 
 var sb = SystolicBoard.new(5, 5)
 var m1: Matrix[5,5] = [
